@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>しまっぷ</title>
+    <link rel="stylesheet" href="css/style.css"> <!-- 外部CSSファイルをリンク -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQueryを読み込む -->
+</head>
+
+<body>
+    <h1>しまっぷ</h1>
+    <h2>日本の島の名前を検索してみよう！</h2>
+    <p>「<a href="https://portal.msil.go.jp/" target="_blank">海しる</a>」から参照</p>
+
+    <!-- 検索窓 -->
+    <div id="shima">
+        <label for="search">島の名前で検索:</label>
+        <input type="text" id="search" name="search">
+        <button onclick="searchIsland()">検索</button>
+        <button onclick="clearSearch()">検索クリア</button> <!-- 検索クリアボタン -->
+    </div>
+
+    <div id="island-info"></div> <!-- 島の情報を表示するための空の<div>要素 -->
+
+    <script>
+        let islandData; // 全島のデータを保存する変数
+
+        // ページの読み込み完了時に処理を実行
+        $(document).ready(function () {
+            fetchIslandInfo(); // 島の情報を取得する関数を呼び出し
+        });
+
+        // 島の情報を取得する関数
+        function fetchIslandInfo() {
+            $.ajax({
+                url: 'https://api.msil.go.jp/area-name/island/v1/query?units=meter&returnGeometry=true',
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+               
+                },
+                success: function (data) {
+                    console.log('取得したデータ:', data); // データをコンソールログに出力
+                    islandData = data; // データを保存
+                },
+                error: function (xhr, status, error) {
+                    console.error('Fetch error:', error);
+                }
+            });
+        }
+
+        // 島の名前で検索する関数
+        function searchIsland() {
+            const searchKeyword = $('#search').val().trim(); // 検索テキストエリアから入力を取得
+            if (!searchKeyword) return; // 空の場合は処理を終了
+
+            if (!islandData) {
+                console.error('島のデータがまだ取得されていません。');
+                return; // データがまだ取得されていない場合は処理を終了
+            }
+
+            const filteredData = islandData.features.filter(function (island) {
+                const islandName = island.attributes['島名']; // 島の名前
+                return islandName.includes(searchKeyword); // 検索キーワードが島の名前に含まれるか確認
+            });
+
+            // フィルタリングされた結果を表示
+            displayIslandInfo({ features: filteredData });
+        }
+
+        // 検索クリアボタンがクリックされたときの処理
+            function clearSearch() {
+                $('#search').val(''); // 検索テキストエリアの値をクリア
+                $('#island-info').empty(); // 島の情報をクリア
+            }
+
+        // 島の情報を表示する関数
+        function displayIslandInfo(data) {
+            const islandInfoContainer = $('#island-info');
+            islandInfoContainer.empty(); // 以前のコンテンツをクリア
+
+            if (!data.features || data.features.length === 0) {
+                islandInfoContainer.text('該当する島の情報が見つかりませんでした。');
+                return;
+            }
+
+            $.each(data.features, function (index, island) {
+                const islandName = island.attributes['島名']; // 島の名前
+                const islandGeometry = island.geometry; // ジオメトリ情報
+
+                // 島の情報を表示するHTMLを作成し、コンテナに追加
+                const islandHtml = `
+                        <div class="island">
+                            <h2>${islandName}</h2>
+                            <p>ジオメトリ情報: ${JSON.stringify(islandGeometry)}</p>
+                        </div>
+                    `;
+                islandInfoContainer.append(islandHtml);
+            });
+        }
+    </script>
+</body>
+
+</html>

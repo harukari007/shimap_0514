@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: darkolivegreen;
+}
+
+h1 ,h2 ,p{
+    text-align: center;
+}
+
+#island-info {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.island {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.island h2 {
+    margin-top: 0;
+}
+
+.island p {
+    margin-bottom: 0;
+}
+
+#shima{
+    text-align: center;
+
+}
